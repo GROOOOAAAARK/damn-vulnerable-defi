@@ -92,7 +92,19 @@ contract UnstoppableChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_unstoppable() public checkSolvedByPlayer {
-        
+        /*
+            Summary:
+            - Make the flashloan contract pause
+            => Make the monitor contract pause the flashloan contract
+            => Make the monitor contract fail the flashloan check
+            => Make the flashloan contract revert the transaction sent by the monitor contract
+
+            Solution explained:
+            We need to make the flashloan contract fail for each call. The failing check will be the one involving the
+            `convertToShares` function. By creating a difference between the total supply and the total assets, we can cause
+            the check to fail and the vault to be paused.
+        */
+        token.transfer(address(vault), 1);
     }
 
     /**
