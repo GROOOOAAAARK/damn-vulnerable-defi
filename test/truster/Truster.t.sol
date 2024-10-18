@@ -52,7 +52,9 @@ contract TrusterChallenge is Test {
      * CODE YOUR SOLUTION HERE
      */
     function test_truster() public checkSolvedByPlayer {
+        //@dev - deploy attacker contract with the right parameters
         Attacker attacker = new Attacker(address(pool), recovery, address(token));
+        //@dev - execute the attack
         require(attacker.attack(), "Attack failed");
     }
 
