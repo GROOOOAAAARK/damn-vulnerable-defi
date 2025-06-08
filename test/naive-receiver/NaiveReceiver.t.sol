@@ -78,7 +78,7 @@ contract NaiveReceiverChallenge is Test {
      */
     function test_naiveReceiver() public checkSolvedByPlayer {
         bytes[] memory hackCallDatas = new bytes[](11);
-        // @dev - we need to generate 10 flashloan calls to extract 10 ETH of fees (1 ETH for each flashloan) in order to drain the pool (balance: 10 ETH)
+        // @dev - we need to generate 10 flashloan calls to extract 10 ETH of fees (1 ETH for each flash loan) in order to drain the pool (balance: 10 ETH)
         for (uint256 i = 0; i < 10; i++) {
             hackCallDatas[i] = abi.encodeCall(NaiveReceiverPool.flashLoan, (receiver, address(weth), 0, "0x"));
         }
